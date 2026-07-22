@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew assembleRelease --console=plain)",
+      "Bash(./gradlew assembleRelease --no-daemon --console=plain)",
+      "PowerShell(.\\\\gradlew assembleRelease --no-daemon --console=plain 2>&1)",
+      "PowerShell(.\\\\gradlew compileDebugKotlin --console=plain 2>&1)"
+    ]
+  }
+}

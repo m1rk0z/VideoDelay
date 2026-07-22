@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@android:color/black">
+
+    <!-- ═══════════════════ VIDEO PLAYER ═══════════════════ -->
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:use_controller="false"
+        app:resize_mode="fit" />
+
+    <!-- Pannello Statistiche in Tempo Reale -->
+    <LinearLayout
+        android:id="@+id/panel_realtime_stats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginTop="60dp"
+        android:layout_marginStart="12dp"
+        android:background="#AA000000"
+        android:padding="8dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_stats_fps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="FPS: N/D"
+            android:textColor="#00FF00"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_stats_resolution"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Risoluzione: N/D"
+            android:textColor="@android:color/white"
+            android:textSize="11sp"
+            android:fontFamily="monospace" />
+
+        <TextView
+            android:id="@+id/tv_stats_dropped"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Frame persi: 0"
+            android:textColor="#FF3333"
+            android:textSize="11sp"
+            android:fontFamily="monospace" />
+
+        <TextView
+            android:id="@+id/tv_stats_buffer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Buffer player: N/D"
+            android:textColor="@android:color/white"
+            android:textSize="11sp"
+            android:fontFamily="monospace" />
+
+    </LinearLayout>
+
+    <!-- ═══════════════════ BUFFERING INDICATOR ═══════════════════ -->
+    <ProgressBar
+        android:id="@+id/progress_buffering"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:indeterminateTint="@color/accent_blue" />
+
+    <!-- ═══════════════════ TAP-TO-PLAY/PAUSE OVERLAY ═══════════════════ -->
+    <FrameLayout
+        android:id="@+id/player_tap_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:clickable="true"
+        android:focusable="true">
+
+        <!-- Icona play/pause al centro, visibile solo brevemente al tap -->
+        <ImageView
+            android:id="@+id/iv_play_pause_feedback"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_pause"
+            android:alpha="0"
+            android:background="#66000000"
+            android:padding="20dp"
+            android:contentDescription="Play/Pausa" />
+
+    </FrameLayout>
+
+    <!-- ═══════════════════ HUD OVERLAY (sopra il video) ═══════════════════ -->
+    <LinearLayout
+        android:id="@+id/hud_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/hud_gradient_top"
+        android:padding="10dp">
+
+        <!-- Logo squadra (toccabile per cambiarlo) -->
+        <ImageView
+            android:id="@+id/hud_logo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/ic_logo_placeholder"
+            android:scaleType="centerCrop"
+            android:background="@drawable/circle_bg"
+            android:visibility="visible"
+            android:contentDescription="Logo squadra" />
+
+        <!-- Nome telecamera -->
+        <TextView
+            android:id="@+id/hud_camera_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Camera"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:shadowColor="@android:color/black"
+            android:shadowRadius="4"
+            android:shadowDx="1"
+            android:shadowDy="1" />
+
+        <!-- Buffer disponibile -->
+        <TextView
+            android:id="@+id/hud_buffer_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:text="00:00"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+
+        <!-- Orologio -->
+        <TextView
+            android:id="@+id/hud_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:text="00:00:00"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:fontFamily="monospace" />
+
+        <!-- Stato DELAY / REPLAY / DEMO -->
+        <TextView
+            android:id="@+id/hud_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⏱ DELAY"
+            android:textColor="@color/accent_orange"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@drawable/badge_bg"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp" />
+
+        <ImageButton
+            android:id="@+id/btn_diagnostics"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:src="@android:drawable/ic_menu_info_details"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Diagnostica"
+            android:tint="@android:color/white" />
+
+    </LinearLayout>
+
+    <!-- ═══════════════════ CONTROLLI INFERIORI (FLOAT CARD) ═══════════════════ -->
+    <LinearLayout
+        android:id="@+id/hud_bottom_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="14dp"
+        android:orientation="vertical">
+
+        <!-- Menu completo: estraibile, nascosto/mostrato dal pulsante ☰ nel mini menu sotto -->
+        <LinearLayout
+            android:id="@+id/layout_full_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/hud_controls_card_bg"
+            android:padding="12dp"
+            android:layout_marginBottom="6dp">
+
+            <!-- Timeline interattiva -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="4dp">
+
+                <TextView
+                    android:id="@+id/tv_timeline_position"
+                    android:layout_width="48dp"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:fontFamily="monospace" />
+
+                <SeekBar
+                    android:id="@+id/seek_bar_timeline"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:progressTint="@color/accent_blue"
+                    android:thumbTint="@color/accent_blue"
+                    android:max="100" />
+
+                <!-- Indicatore delay fisso -->
+                <TextView
+                    android:layout_width="56dp"
+                    android:layout_height="wrap_content"
+                    android:text="-8s"
+                    android:textColor="@color/accent_blue"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+            <!-- Riga 1: Replay + PLAY/PAUSA (grande) + PLAY (torna a differita) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:paddingBottom="4dp">
+
+                <Button
+                    android:id="@+id/btn_replay30"
+                    style="@style/SportButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="◀◀ 30s"
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/btn_replay10"
+                    style="@style/SportButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="◀◀ 10s"
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/btn_replay5"
+                    style="@style/SportButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="◀◀ 5s"
+                    android:textSize="13sp" />
+
+                <!-- PLAY / PAUSA – tasto grande centrale -->
+                <ImageButton
+                    android:id="@+id/btn_play_pause"
+                    android:layout_width="0dp"
+                    android:layout_weight="1.4"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_pause"
+                    android:background="@drawable/btn_icon_bg"
+                    android:contentDescription="Pausa"
+                    android:tint="@android:color/white"
+                    android:scaleType="fitCenter" />
+
+                <!-- PLAY (LIVE) – torna alla differita attiva uscendo dal replay -->
+                <Button
+                    android:id="@+id/btn_play"
+                    style="@style/SportButtonLive"
+                    android:layout_width="0dp"
+                    android:layout_weight="1.4"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="4dp"
+                    android:text="PLAY"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+
+            <!-- Riga 2: Delay slider + Audio + Clip + RTMP + Settings -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingTop="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Delay:"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="4dp" />
+
+                <SeekBar
+                    android:id="@+id/slider_delay"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="60"
+                    android:progress="5"
+                    android:progressTint="@color/accent_blue"
+                    android:thumbTint="@color/accent_blue" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:id="@+id/tv_delay_value"
+                        android:layout_width="48dp"
+                        android:layout_height="wrap_content"
+                        android:text="5s"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:gravity="center" />
+
+                    <TextView
+                        android:id="@+id/btn_go_live"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LIVE"
+                        android:textColor="#FFF44336"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/btn_live_bg"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="2dp"
+                        android:gravity="center"
+                        android:layout_marginTop="2dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btn_audio"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:src="@drawable/ic_volume_on"
+                    android:background="@drawable/btn_icon_bg"
+                    android:contentDescription="Audio"
+                    android:tint="@android:color/white" />
+
+                <Button
+                    android:id="@+id/btn_save_clip"
+                    style="@style/SportButtonClip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="4dp"
+                    android:text="🎬 CLIP"
+                    android:textSize="12sp" />
+
+                <ImageButton
+                    android:id="@+id/btn_rtmp"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="4dp"
+                    android:src="@android:drawable/presence_video_online"
+                    android:background="@drawable/btn_icon_bg"
+                    android:contentDescription="Diretta Social"
+                    android:tint="@android:color/white" />
+
+                <ImageButton
+                    android:id="@+id/btn_settings"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@android:drawable/ic_menu_preferences"
+                    android:background="@drawable/btn_icon_bg"
+                    android:contentDescription="Impostazioni Buffer"
+                    android:tint="@android:color/white" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Mini menu: sempre visibile, azioni rapide durante la visione -->
+        <LinearLayout
+            android:id="@+id/layout_mini_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@drawable/hud_controls_card_bg"
+            android:padding="8dp">
+
+            <ImageButton
+                android:id="@+id/btn_toggle_controls"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@android:drawable/ic_menu_sort_by_size"
+                android:background="@drawable/btn_icon_bg"
+                android:contentDescription="Mostra/nascondi controlli"
+                android:tint="@color/accent_blue" />
+
+            <Button
+                android:id="@+id/btn_mark"
+                style="@style/SportButtonMark"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_marginStart="6dp"
+                android:text="📌 MARK"
+                android:textSize="12sp" />
+
+            <ImageButton
+                android:id="@+id/btn_clip_gallery"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="6dp"
+                android:src="@android:drawable/ic_menu_gallery"
+                android:background="@drawable/btn_icon_bg"
+                android:contentDescription="Galleria Clip"
+                android:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_screenshot"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="6dp"
+                android:src="@android:drawable/ic_menu_camera"
+                android:background="@drawable/btn_icon_bg"
+                android:contentDescription="Screenshot"
+                android:tint="@android:color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

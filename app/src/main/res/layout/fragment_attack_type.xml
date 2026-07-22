@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_popup_card">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="📌 Tipo di attacco"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btn_attack_duration"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@android:drawable/ic_menu_recent_history"
+                android:background="@drawable/btn_icon_bg"
+                android:contentDescription="Durata clip"
+                android:tint="@color/text_secondary" />
+
+        </LinearLayout>
+
+        <!-- Colonne per zona, stile scout: una colonna per zona, pulsanti quadrati impilati -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="3dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_col_posto4_header"
+                    style="@style/AttackColumnHeader"
+                    android:text="P.4" />
+
+                <LinearLayout
+                    android:id="@+id/layout_col_posto4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="3dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_col_posto3_header"
+                    style="@style/AttackColumnHeader"
+                    android:text="P.3" />
+
+                <LinearLayout
+                    android:id="@+id/layout_col_posto3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="3dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_col_posto2_header"
+                    style="@style/AttackColumnHeader"
+                    android:text="P.2" />
+
+                <LinearLayout
+                    android:id="@+id/layout_col_posto2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_col_seconda_linea_header"
+                    style="@style/AttackColumnHeader"
+                    android:text="P.6" />
+
+                <LinearLayout
+                    android:id="@+id/layout_col_seconda_linea"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

@@ -1,0 +1,163 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="@android:color/black">
+
+    <!-- Schermata di disegno (Fullscreen) -->
+    <it.videodelay.app.ui.player.DrawingView
+        android:id="@+id/drawing_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/palette_container"
+        android:layout_below="@id/toolbar_container" />
+
+    <!-- Barra Superiore Controlli -->
+    <LinearLayout
+        android:id="@+id/toolbar_container"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentTop="true"
+        android:background="#DD000000"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp">
+
+        <ImageButton
+            android:id="@+id/btn_editor_close"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Chiudi"
+            android:tint="@android:color/white" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:text="Analisi Grafica"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/btn_editor_undo"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Annulla"
+            android:tint="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/btn_editor_clear"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="16dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cancella tutto"
+            android:tint="@android:color/white" />
+
+        <Button
+            android:id="@+id/btn_editor_share"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Condividi"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@color/accent_blue" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_editor_save"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Salva"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            app:backgroundTint="@color/colorPrimary"
+            android:textColor="@android:color/black"
+            app:cornerRadius="8dp" />
+
+    </LinearLayout>
+
+    <!-- Barra Inferiore Palette Colori -->
+    <LinearLayout
+        android:id="@+id/palette_container"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_alignParentBottom="true"
+        android:background="#DD000000"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingVertical="8dp">
+
+        <!-- Rosso (Default) -->
+        <View
+            android:id="@+id/color_red"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/color_dot_bg"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Verde -->
+        <View
+            android:id="@+id/color_green"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/color_dot_bg"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Blu -->
+        <View
+            android:id="@+id/color_blue"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/color_dot_bg"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Giallo -->
+        <View
+            android:id="@+id/color_yellow"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/color_dot_bg"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Bianco -->
+        <View
+            android:id="@+id/color_white"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/color_dot_bg"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Nero -->
+        <View
+            android:id="@+id/color_black"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/color_dot_bg"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+</RelativeLayout>

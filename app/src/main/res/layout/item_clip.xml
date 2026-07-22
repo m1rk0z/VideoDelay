@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    android:layout_margin="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/bg_surface">
+
+    <ImageView
+        android:id="@+id/iv_clip_thumbnail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:clickable="false"
+        android:focusable="false"
+        android:contentDescription="Clip video" />
+
+    <!-- Icona play a indicare che è un video -->
+    <ImageView
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center"
+        android:src="@android:drawable/ic_media_play"
+        app:tint="@android:color/white" />
+
+    <!-- Overlay di selezione (semitrasparente ciano) -->
+    <View
+        android:id="@+id/view_selected_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#6606B6D4"
+        android:visibility="gone" />
+
+    <!-- Icona check di selezione -->
+    <ImageView
+        android:id="@+id/iv_selected_check"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="8dp"
+        android:src="@android:drawable/checkbox_on_background"
+        android:visibility="gone"
+        app:tint="@color/accent_blue" />
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Tema base dark per tutta l'app -->
+    <style name="Theme.VideoDelay" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item>
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorOnSurface">@color/colorOnSurface</item>
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="colorError">@color/colorError</item>
+        <item name="android:statusBarColor">@color/bg_primary</item>
+        <item name="android:navigationBarColor">@color/bg_primary</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
+    </style>
+
+    <!-- Stile pulsanti sportivi grandi (≥52dp, testo chiaro) -->
+    <style name="SportButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_marginStart">3dp</item>
+        <item name="android:layout_marginEnd">3dp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="strokeColor">@color/bg_surface_variant</item>
+        <item name="backgroundTint">@color/bg_surface_variant</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Pulsante LIVE (rosso prominente) -->
+    <style name="SportButtonLive" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_marginStart">3dp</item>
+        <item name="android:layout_marginEnd">3dp</item>
+        <item name="backgroundTint">@color/live_red</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Intestazione colonna zona nel popup MARK (stile scout pallavolo) -->
+    <style name="AttackColumnHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">4dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Pulsante MARK (giallo/arancione) -->
+    <style name="SportButtonMark" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_marginStart">3dp</item>
+        <item name="android:layout_marginEnd">3dp</item>
+        <item name="backgroundTint">@color/mark_yellow</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Pulsante CLIP (arancione) -->
+    <style name="SportButtonClip" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/accent_orange</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+</resources>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VideoDelay</string>
+
+    <!-- Rubrica -->
+    <string name="title_cameras">Telecamere</string>
+    <string name="add_camera">Aggiungi Telecamera</string>
+    <string name="edit_camera">Modifica Telecamera</string>
+    <string name="delete_camera">Elimina Telecamera</string>
+    <string name="no_cameras">Nessuna telecamera salvata</string>
+    <string name="camera_name_hint">Nome telecamera</string>
+    <string name="rtsp_url_hint">URL RTSP (es. rtsp://192.168.1.100:554/live)</string>
+    <string name="save">Salva</string>
+    <string name="cancel">Annulla</string>
+    <string name="connect">Connetti</string>
+    <string name="export_cameras">Esporta rubrica</string>
+    <string name="import_cameras">Importa rubrica</string>
+
+    <!-- Player -->
+    <string name="status_live">● LIVE</string>
+    <string name="status_delay">⏱ DELAY</string>
+    <string name="status_replay">◀ REPLAY</string>
+    <string name="status_connecting">⏳ CONNESSIONE…</string>
+    <string name="status_error">❌ ERRORE</string>
+    <string name="btn_live">▶ LIVE</string>
+    <string name="btn_replay5">◀◀ 5s</string>
+    <string name="btn_replay10">◀◀ 10s</string>
+    <string name="btn_replay30">◀◀ 30s</string>
+    <string name="btn_mark">📌 MARK</string>
+    <string name="btn_screenshot">Screenshot</string>
+    <string name="btn_save_clip">🎬 CLIP</string>
+    <string name="delay_label">Delay:</string>
+    <string name="delay_live">LIVE</string>
+
+    <!-- Mark -->
+    <string name="marks_title">📌 Momenti Chiave</string>
+    <string name="no_marks">Nessun MARK salvato.\nPremi MARK durante la riproduzione.</string>
+    <string name="mark_added">📌 MARK salvato</string>
+
+    <!-- Clip -->
+    <string name="save_clip_title">Salva Clip</string>
+    <string name="clip_5s">5 secondi</string>
+    <string name="clip_10s">10 secondi</string>
+    <string name="clip_15s">15 secondi</string>
+    <string name="clip_20s">20 secondi</string>
+    <string name="clip_30s">30 secondi</string>
+    <string name="clip_exporting">Esportazione clip in corso…</string>
+    <string name="clip_saved">✅ Clip salvata in Galleria/VideoDelay</string>
+    <string name="clip_error">Errore esportazione clip</string>
+
+    <!-- Screenshot -->
+    <string name="screenshot_saved">Screenshot salvato!</string>
+    <string name="screenshot_error">Errore screenshot</string>
+    <string name="share_screenshot">Condividi screenshot</string>
+
+    <!-- Errori -->
+    <string name="error_stream">Errore stream: verifica URL e connessione Wi-Fi</string>
+    <string name="error_no_buffer">Buffer non disponibile</string>
+    <string name="field_required_name">Inserisci un nome</string>
+    <string name="field_required_url">Inserisci l\'URL RTSP</string>
+    <string name="field_invalid_url">L\'URL deve iniziare con rtsp://</string>
+
+    <!-- Streaming service -->
+    <string name="service_title">VideoDelay – Streaming</string>
+    <string name="service_connecting">⏳ Connessione in corso…</string>
+    <string name="service_live">● LIVE</string>
+    <string name="service_error">❌ Errore stream</string>
+
+    <!-- Logo squadra -->
+    <string name="logo_hint">Tocca per aggiungere logo squadra</string>
+    <string name="pick_logo">Scegli immagine</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_camera_icon">Icona telecamera</string>
+    <string name="cd_logo">Logo squadra</string>
+    <string name="cd_audio_btn">Attiva/disattiva audio</string>
+</resources>

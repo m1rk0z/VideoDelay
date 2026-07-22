@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Cache dir per export JSON e clip temporanee -->
+    <cache-path
+        name="cache"
+        path="." />
+    <!-- Files dir -->
+    <files-path
+        name="files"
+        path="." />
+</paths>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Anello di riavvolgimento (delay), aperto in alto -->
+    <path
+        android:pathData="M69.4,35.6 A24,24 0 1 1 33.2,42"
+        android:fillColor="#00000000"
+        android:strokeColor="#06B6D4"
+        android:strokeWidth="6"
+        android:strokeLineCap="round" />
+
+    <!-- Punta della freccia sull'anello -->
+    <path
+        android:pathData="M37.7,34.2 L37.9,45.9 L27.5,39.9 Z"
+        android:fillColor="#06B6D4" />
+
+    <!-- Triangolo Play centrale (arancio) -->
+    <path
+        android:pathData="M48,43.5 L48,64.5 L66,54 Z"
+        android:fillColor="#F97316" />
+</vector>
