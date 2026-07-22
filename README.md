@@ -9,6 +9,20 @@
 
 ---
 
+## 📱 Screenshots & Interfaccia (Cyber Teal)
+
+<p align="center">
+  <img src="docs/screenshots/camera_list.jpg" width="280" alt="Lista Telecamere IP" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="docs/screenshots/gallery_view.jpg" width="280" alt="Galleria Screenshot e Selezione Multipla" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/player_view.jpg" width="600" alt="Player Video con Time-Shift Delay" />
+</p>
+
+---
+
 ## ✨ Funzionalità Principali
 
 ### ⏱️ Time-Shift & Delay Configurabile
