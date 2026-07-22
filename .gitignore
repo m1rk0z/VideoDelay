@@ -14,3 +14,5 @@
 .cxx
 local.properties
 .env
+*.env
+API_KEY.env
