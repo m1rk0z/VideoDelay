@@ -11,44 +11,12 @@
         android:orientation="vertical"
         android:padding="10dp">
 
-        <!-- Barra superiore: Invertito ordine (Orologio a sinistra, Titolo a destra) -->
+        <!-- 5 Colonne per zona stile scout IN ALTO (P.4, P.3, P.2, P.1, P/O) per un tocco immediato -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:layout_marginBottom="8dp">
-
-            <Button
-                android:id="@+id/btn_attack_duration"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="⏱️ 3s"
-                android:textColor="@color/accent_blue"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:background="@drawable/btn_icon_bg"
-                android:paddingHorizontal="10dp"
-                android:contentDescription="Cambia durata clip" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:text="📌 Tipo di attacco"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
-
-        <!-- 5 Colonne per zona stile scout: P.4, P.3, P.2, P.1, P/O -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
 
             <!-- P.4 -->
             <LinearLayout
@@ -154,6 +122,39 @@
                     android:orientation="vertical" />
 
             </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Barra orologio e titolo in BASSO (sotto i pulsanti) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="2dp">
+
+            <Button
+                android:id="@+id/btn_attack_duration"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="⏱️ 3s"
+                android:textColor="@color/accent_blue"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_icon_bg"
+                android:paddingHorizontal="10dp"
+                android:contentDescription="Cambia durata clip" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="📌 Tipo di attacco"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
         </LinearLayout>
 
