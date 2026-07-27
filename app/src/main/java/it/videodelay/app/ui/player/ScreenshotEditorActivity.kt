@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import it.videodelay.app.R
+import it.videodelay.app.util.MatchManager
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -137,7 +138,7 @@ class ScreenshotEditorActivity : AppCompatActivity() {
             val values = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, filename)
                 put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/VideoDelay")
+                put(MediaStore.Images.Media.RELATIVE_PATH, MatchManager.getScreenshotRelativePath(this@ScreenshotEditorActivity))
             }
             val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
                 ?: throw Exception("Impossibile inserire nel MediaStore")

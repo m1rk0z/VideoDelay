@@ -14,6 +14,57 @@
         android:background="@color/bg_surface"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
+    <!-- Barra selezione / creazione Partita -->
+    <LinearLayout
+        android:id="@+id/layout_match_selector"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#151D2A"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📁 Partita:"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:textSize="13sp"
+            android:layout_marginEnd="6dp" />
+
+        <Spinner
+            android:id="@+id/spinner_match_folders"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:background="@drawable/btn_icon_bg"
+            android:spinnerMode="dropdown" />
+
+        <Button
+            android:id="@+id/btn_new_match"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="38dp"
+            android:text="+ Nuova"
+            android:textSize="12sp"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:paddingHorizontal="8dp" />
+
+        <ImageButton
+            android:id="@+id/btn_delete_match"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:background="@drawable/btn_icon_bg"
+            android:contentDescription="Elimina cartella partita"
+            android:tint="@color/live_red" />
+
+    </LinearLayout>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -31,7 +82,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Nessuno screenshot salvato.\nCatturali durante la riproduzione video."
+            android:text="Nessuno screenshot in questa partita.\nCatturali durante la riproduzione video."
             android:textColor="@color/text_secondary"
             android:textSize="15sp"
             android:gravity="center"

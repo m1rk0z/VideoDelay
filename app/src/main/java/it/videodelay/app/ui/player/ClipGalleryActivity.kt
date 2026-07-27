@@ -1,5 +1,6 @@
 package it.videodelay.app.ui.player
 
+import android.app.AlertDialog
 import android.content.ContentUris
 import android.content.Intent
 import android.graphics.Bitmap
@@ -11,8 +12,13 @@ import android.util.Size
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +27,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import it.videodelay.app.R
+import it.videodelay.app.util.MatchManager
 import it.videodelay.app.util.sanitizedForFilename
 
 /** Voce della galleria: intestazione di sezione (per tipo di attacco) o singola clip. */
@@ -34,21 +41,23 @@ class ClipGalleryActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_CAMERA_NAME = "camera_name"
         private const val REQUEST_CODE_DELETE = 1001
+        private const val REQUEST_CODE_DELETE_MATCH = 1002
         private const val VIEW_TYPE_HEADER = 0
         private const val VIEW_TYPE_CLIP = 1
         private const val GRID_SPAN_COUNT = 3
 
-        // Cartella "Movies/VideoDelay/Marks/<CODICE>/..." usata dal popup MARK.
-        private val MARK_FOLDER_REGEX = Regex("Movies/VideoDelay/Marks/([^/]+)/?")
+        // Cartella "Movies/VideoDelay/[Match]/Marks/<CODICE>/..." usata dal popup MARK.
+        private val MARK_FOLDER_REGEX = Regex("Movies/VideoDelay/(?:[^/]+/)?Marks/([^/]+)/?")
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_CODE_DELETE) {
+        if (requestCode == REQUEST_CODE_DELETE || requestCode == REQUEST_CODE_DELETE_MATCH) {
             if (resultCode == RESULT_OK) {
                 Toast.makeText(this, "Operazione completata con successo", Toast.LENGTH_SHORT).show()
             }
             exitSelectionMode()
+            setupMatchBar()
             loadClips()
         }
     }
@@ -59,6 +68,13 @@ class ClipGalleryActivity : AppCompatActivity() {
     private lateinit var gridLayoutManager: GridLayoutManager
     private val items = ArrayList<GalleryItem>()
     private var cameraName: String = ""
+
+    // Elementi Match / Partite
+    private lateinit var spinnerMatchFolders: Spinner
+    private lateinit var btnNewMatch: Button
+    private lateinit var btnDeleteMatch: ImageButton
+    private var selectedMatchFolder: String = "Tutte le partite"
+    private var matchFoldersList = ArrayList<String>()
 
     private var isSelectionMode = false
     private val selectedUris = HashSet<Uri>()
@@ -77,7 +93,7 @@ class ClipGalleryActivity : AppCompatActivity() {
         cameraName = intent.getStringExtra(EXTRA_CAMERA_NAME) ?: ""
 
         val toolbar = findViewById<Toolbar>(R.id.toolbar_clip_gallery)
-        toolbar.title = "Clip · $cameraName"
+        toolbar.title = if (cameraName.isNotEmpty()) "Clip · $cameraName" else "Galleria Clip Video"
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         toolbar.setNavigationOnClickListener {
@@ -93,19 +109,102 @@ class ClipGalleryActivity : AppCompatActivity() {
         btnDeleteSelected = findViewById(R.id.btn_delete_selected)
         btnCancelSelection = findViewById(R.id.btn_cancel_selection)
 
+        spinnerMatchFolders = findViewById(R.id.spinner_match_folders)
+        btnNewMatch = findViewById(R.id.btn_new_match)
+        btnDeleteMatch = findViewById(R.id.btn_delete_match)
+
         setupSelectionListeners()
+        setupMatchBar()
 
         adapter = ClipAdapter()
         gridLayoutManager = GridLayoutManager(this, GRID_SPAN_COUNT).apply {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int =
-                    if (items.getOrNull(position) is GalleryItem.Header) GRID_SPAN_COUNT else 1
+                    if (adapter.getItemViewType(position) == VIEW_TYPE_HEADER) GRID_SPAN_COUNT else 1
             }
         }
         recyclerView.layoutManager = gridLayoutManager
         recyclerView.adapter = adapter
 
         loadClips()
+    }
+
+    private fun setupMatchBar() {
+        val matches = MatchManager.getAllMatchFolders(this).toMutableList()
+        matchFoldersList.clear()
+        matchFoldersList.add("Tutte le partite")
+        matchFoldersList.addAll(matches.filter { it != "Tutte le partite" })
+
+        val spinnerAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            matchFoldersList
+        ).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        spinnerMatchFolders.adapter = spinnerAdapter
+
+        val active = MatchManager.getActiveMatch(this)
+        val activeIndex = matchFoldersList.indexOf(active).coerceAtLeast(0)
+        spinnerMatchFolders.setSelection(activeIndex)
+        selectedMatchFolder = matchFoldersList[activeIndex]
+
+        spinnerMatchFolders.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                selectedMatchFolder = matchFoldersList[position]
+                if (selectedMatchFolder != "Tutte le partite") {
+                    MatchManager.setActiveMatch(this@ClipGalleryActivity, selectedMatchFolder)
+                }
+                loadClips()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        btnNewMatch.setOnClickListener { showNewMatchDialog() }
+        btnDeleteMatch.setOnClickListener { confirmDeleteMatchFolder() }
+    }
+
+    private fun showNewMatchDialog() {
+        val input = EditText(this).apply {
+            hint = "Es. Partita vs Roma"
+            setSingleLine()
+        }
+        AlertDialog.Builder(this)
+            .setTitle("➕ Nuova Partita / Sessione")
+            .setMessage("Inserisci il nome per la nuova cartella partita. Tutte le nuove clip e mark verranno salvati qui.")
+            .setView(input)
+            .setPositiveButton("Crea e Attiva") { _, _ ->
+                val name = input.text.toString()
+                val created = MatchManager.createNewMatch(this, name)
+                Toast.makeText(this, "Nuova partita creata: $created", Toast.LENGTH_SHORT).show()
+                setupMatchBar()
+                loadClips()
+            }
+            .setNegativeButton("Annulla", null)
+            .show()
+    }
+
+    private fun confirmDeleteMatchFolder() {
+        if (selectedMatchFolder == "Tutte le partite") {
+            Toast.makeText(this, "Seleziona una specifica cartella partita da eliminare", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val allClips = allClipUris()
+        if (allClips.isEmpty()) {
+            Toast.makeText(this, "Nessuna clip da eliminare in $selectedMatchFolder", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("🗑️ Elimina Partita")
+            .setMessage("Vuoi eliminare definitivamente tutte le clip della cartella \"$selectedMatchFolder\" (${allClips.size} video)?")
+            .setPositiveButton("Elimina Tutto") { _, _ ->
+                selectedUris.clear()
+                selectedUris.addAll(allClips)
+                confirmAndDeleteSelected()
+            }
+            .setNegativeButton("Annulla", null)
+            .show()
     }
 
     override fun onCreateOptionsMenu(menu: android.view.Menu): Boolean {
@@ -151,11 +250,6 @@ class ClipGalleryActivity : AppCompatActivity() {
 
     private fun allClipUris(): List<Uri> = items.filterIsInstance<GalleryItem.Clip>().map { it.uri }
 
-    /**
-     * Legge camera + cartella (RELATIVE_PATH) di ogni clip e le raggruppa per tipo di attacco,
-     * nello stesso ordine di zona/codice mostrato nel popup MARK. Le clip salvate col pulsante
-     * "CLIP" generico (non da un MARK) finiscono in una sezione "Altre clip" in fondo.
-     */
     private fun loadClips() {
         data class Entry(val uri: Uri, val code: String?, val dateAdded: Long)
 
@@ -165,28 +259,49 @@ class ClipGalleryActivity : AppCompatActivity() {
             MediaStore.Video.Media.RELATIVE_PATH,
             MediaStore.Video.Media.DATE_ADDED
         )
-        val selection = "${MediaStore.Video.Media.RELATIVE_PATH} LIKE ? AND ${MediaStore.Video.Media.DISPLAY_NAME} LIKE ?"
-        val selectionArgs = arrayOf("Movies/VideoDelay%", "%${cameraName.sanitizedForFilename()}%")
 
-        contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            projection, selection, selectionArgs, null
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.RELATIVE_PATH)
-            val dateColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idColumn)
-                val relativePath = cursor.getString(pathColumn) ?: ""
-                val code = MARK_FOLDER_REGEX.find(relativePath)?.groupValues?.get(1)
-                entries.add(
-                    Entry(
-                        uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id),
-                        code = code,
-                        dateAdded = cursor.getLong(dateColumn)
+        val pathPattern = if (selectedMatchFolder == "Tutte le partite") {
+            "Movies/VideoDelay%"
+        } else {
+            "Movies/VideoDelay/$selectedMatchFolder%"
+        }
+
+        val hasCameraFilter = cameraName.isNotBlank()
+        val selection = if (hasCameraFilter) {
+            "${MediaStore.Video.Media.RELATIVE_PATH} LIKE ? AND ${MediaStore.Video.Media.DISPLAY_NAME} LIKE ?"
+        } else {
+            "${MediaStore.Video.Media.RELATIVE_PATH} LIKE ?"
+        }
+
+        val selectionArgs = if (hasCameraFilter) {
+            arrayOf(pathPattern, "%${cameraName.sanitizedForFilename()}%")
+        } else {
+            arrayOf(pathPattern)
+        }
+
+        try {
+            contentResolver.query(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                projection, selection, selectionArgs, null
+            )?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.RELATIVE_PATH)
+                val dateColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idColumn)
+                    val relativePath = cursor.getString(pathColumn) ?: ""
+                    val code = MARK_FOLDER_REGEX.find(relativePath)?.groupValues?.get(1)
+                    entries.add(
+                        Entry(
+                            uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id),
+                            code = code,
+                            dateAdded = cursor.getLong(dateColumn)
+                        )
                     )
-                )
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         val byCode = entries.groupBy { it.code }
@@ -228,7 +343,7 @@ class ClipGalleryActivity : AppCompatActivity() {
         isSelectionMode = false
         selectedUris.clear()
         layoutSelectionActions.visibility = View.GONE
-        findViewById<Toolbar>(R.id.toolbar_clip_gallery).title = "Clip · $cameraName"
+        findViewById<Toolbar>(R.id.toolbar_clip_gallery).title = if (cameraName.isNotEmpty()) "Clip · $cameraName" else "Galleria Clip Video"
         adapter.notifyDataSetChanged()
         invalidateOptionsMenu()
     }
@@ -248,66 +363,84 @@ class ClipGalleryActivity : AppCompatActivity() {
         try {
             val urisList = ArrayList(selectedUris)
             val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-                type = "video/mp4"
+                type = "video/*"
                 putParcelableArrayListExtra(Intent.EXTRA_STREAM, urisList)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(intent, "Condividi ${urisList.size} clip"))
+            startActivity(Intent.createChooser(intent, "Condividi ${selectedUris.size} clip"))
         } catch (e: Exception) {
-            e.printStackTrace()
-            Toast.makeText(this, "Errore durante la condivisione: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Impossibile condividere le clip: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun confirmAndDeleteSelected() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Elimina selezionati")
-            .setMessage("Sei sicuro di voler eliminare definitivamente le ${selectedUris.size} clip selezionate?")
-            .setPositiveButton("Elimina") { _, _ ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    try {
-                        val pendingIntent = MediaStore.createDeleteRequest(contentResolver, selectedUris.toList())
-                        startIntentSenderForResult(pendingIntent.intentSender, REQUEST_CODE_DELETE, null, 0, 0, 0)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        Toast.makeText(this, "Errore durante l'eliminazione", Toast.LENGTH_SHORT).show()
-                    }
-                } else {
-                    var deleteCount = 0
-                    for (uri in selectedUris) {
-                        try {
-                            contentResolver.delete(uri, null, null)
-                            deleteCount++
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
-                    }
-                    Toast.makeText(this, "$deleteCount clip eliminate", Toast.LENGTH_SHORT).show()
-                    exitSelectionMode()
-                    loadClips()
-                }
-            }
+        val count = selectedUris.size
+        AlertDialog.Builder(this)
+            .setTitle("Elimina clip")
+            .setMessage("Sei sicuro di voler eliminare definitivamente $count clip?")
+            .setPositiveButton("Elimina") { _, _ -> performBatchDelete() }
             .setNegativeButton("Annulla", null)
             .show()
     }
 
-    private fun playClip(uri: Uri) {
+    private fun performBatchDelete() {
+        val urisToDelete = selectedUris.toList()
+        if (urisToDelete.isEmpty()) return
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                val pendingIntent = MediaStore.createDeleteRequest(contentResolver, urisToDelete)
+                startIntentSenderForResult(pendingIntent.intentSender, REQUEST_CODE_DELETE, null, 0, 0, 0)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                fallbackDelete(urisToDelete)
+            }
+        } else {
+            fallbackDelete(urisToDelete)
+        }
+    }
+
+    private fun fallbackDelete(uris: List<Uri>) {
+        var deletedCount = 0
+        for (uri in uris) {
+            try {
+                val rows = contentResolver.delete(uri, null, null)
+                if (rows > 0) deletedCount++
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        Toast.makeText(this, "Eliminate $deletedCount clip", Toast.LENGTH_SHORT).show()
+        exitSelectionMode()
+        setupMatchBar()
+        loadClips()
+    }
+
+    private fun openClipPlayer(uri: Uri) {
         try {
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "video/mp4")
+                setDataAndType(uri, "video/*")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(this, "Nessuna app disponibile per riprodurre il video", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Impossibile riprodurre la clip: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
-    override fun onBackPressed() {
-        if (isSelectionMode) exitSelectionMode() else super.onBackPressed()
-    }
+    // ──────────────────────────── Adapter ──────────────────────────────
 
     inner class ClipAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+        inner class HeaderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val tvTitle: TextView = view.findViewById(R.id.tv_section_title)
+        }
+
+        inner class ClipViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            val ivThumbnail: ImageView = view.findViewById(R.id.iv_clip_thumbnail)
+            val overlaySelected: View = view.findViewById(R.id.view_selected_overlay)
+            val icCheck: ImageView = view.findViewById(R.id.iv_selected_check)
+        }
 
         override fun getItemViewType(position: Int): Int =
             if (items[position] is GalleryItem.Header) VIEW_TYPE_HEADER else VIEW_TYPE_CLIP
@@ -323,53 +456,44 @@ class ClipGalleryActivity : AppCompatActivity() {
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
             when (val item = items[position]) {
-                is GalleryItem.Header -> (holder as HeaderViewHolder).bind(item)
-                is GalleryItem.Clip -> (holder as ClipViewHolder).bind(item.uri, selectedUris.contains(item.uri))
-            }
-        }
-
-        override fun getItemCount(): Int = items.size
-
-        inner class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val tvTitle: TextView = itemView.findViewById(R.id.tv_section_title)
-            private val viewColor: View = itemView.findViewById(R.id.view_section_color)
-
-            fun bind(header: GalleryItem.Header) {
-                tvTitle.text = header.title
-                viewColor.setBackgroundColor(ContextCompat.getColor(itemView.context, header.colorRes))
-            }
-        }
-
-        inner class ClipViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            private val imageView: ImageView = itemView.findViewById(R.id.iv_clip_thumbnail)
-            private val selectedOverlay: View = itemView.findViewById(R.id.view_selected_overlay)
-            private val selectedCheck: ImageView = itemView.findViewById(R.id.iv_selected_check)
-
-            fun bind(uri: Uri, isSelected: Boolean) {
-                selectedOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
-                selectedCheck.visibility = if (isSelected) View.VISIBLE else View.GONE
-
-                try {
-                    val thumbnail: Bitmap = contentResolver.loadThumbnail(uri, Size(250, 250), null)
-                    imageView.setImageBitmap(thumbnail)
-                } catch (e: Exception) {
-                    imageView.setImageResource(android.R.drawable.ic_menu_gallery)
+                is GalleryItem.Header -> {
+                    val h = holder as HeaderViewHolder
+                    h.tvTitle.text = item.title
+                    h.tvTitle.setTextColor(ContextCompat.getColor(this@ClipGalleryActivity, item.colorRes))
                 }
+                is GalleryItem.Clip -> {
+                    val h = holder as ClipViewHolder
+                    val uri = item.uri
+                    val isSelected = selectedUris.contains(uri)
 
-                itemView.setOnClickListener {
-                    if (isSelectionMode) toggleSelection(uri) else playClip(uri)
-                }
-
-                itemView.setOnLongClickListener {
-                    if (!isSelectionMode) {
-                        enterSelectionMode()
-                        toggleSelection(uri)
-                        true
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        try {
+                            val thumbnail = contentResolver.loadThumbnail(uri, Size(300, 300), null)
+                            h.ivThumbnail.setImageBitmap(thumbnail)
+                        } catch (e: Exception) {
+                            h.ivThumbnail.setImageResource(R.drawable.ic_videocam)
+                        }
                     } else {
-                        false
+                        h.ivThumbnail.setImageResource(R.drawable.ic_videocam)
+                    }
+
+                    h.overlaySelected.visibility = if (isSelected) View.VISIBLE else View.GONE
+                    h.icCheck.visibility = if (isSelected) View.VISIBLE else View.GONE
+
+                    h.itemView.setOnClickListener {
+                        if (isSelectionMode) toggleSelection(uri) else openClipPlayer(uri)
+                    }
+                    h.itemView.setOnLongClickListener {
+                        if (!isSelectionMode) {
+                            enterSelectionMode()
+                            toggleSelection(uri)
+                        }
+                        true
                     }
                 }
             }
         }
+
+        override fun getItemCount(): Int = items.size
     }
 }

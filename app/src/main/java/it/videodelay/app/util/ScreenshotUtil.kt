@@ -137,7 +137,7 @@ object ScreenshotUtil {
             val values = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, filename)
                 put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/VideoDelay")
+                put(MediaStore.Images.Media.RELATIVE_PATH, MatchManager.getScreenshotRelativePath(context))
             }
             val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
                 ?: throw Exception("URI MediaStore null")
@@ -278,11 +278,16 @@ object ScreenshotUtil {
         )
     }
 
-    fun getSavedScreenshots(context: android.content.Context): List<Uri> {
+    fun getSavedScreenshots(context: android.content.Context, matchName: String? = null): List<Uri> {
         val list = ArrayList<Uri>()
         val projection = arrayOf(MediaStore.Images.Media._ID)
         val selection = "${MediaStore.Images.Media.RELATIVE_PATH} LIKE ?"
-        val selectionArgs = arrayOf("%Pictures/VideoDelay%")
+        val pathPattern = if (matchName.isNullOrBlank() || matchName == "Tutte le partite") {
+            "%Pictures/VideoDelay%"
+        } else {
+            "%Pictures/VideoDelay/$matchName%"
+        }
+        val selectionArgs = arrayOf(pathPattern)
         val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
 
         try {

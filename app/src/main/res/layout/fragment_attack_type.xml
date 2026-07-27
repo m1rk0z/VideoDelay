@@ -114,7 +114,7 @@
                 <TextView
                     android:id="@+id/tv_col_seconda_linea_header"
                     style="@style/AttackColumnHeader"
-                    android:text="P.6" />
+                    android:text="P.1 / P / O" />
 
                 <LinearLayout
                     android:id="@+id/layout_col_seconda_linea"

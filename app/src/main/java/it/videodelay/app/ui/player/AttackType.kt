@@ -16,22 +16,27 @@ fun AttackZone.colorRes(): Int = when (this) {
 }
 
 /**
- * Tipo di attacco pallavolo selezionabile dal popup MARK. [code] è anche il nome della cartella
- * media, [label] la descrizione estesa mostrata nella conferma dopo il salvataggio della clip.
+ * Tipo di attacco pallavolo selezionabile dal popup MARK. [code] è la sigla visualizzata,
+ * [label] la descrizione estesa.
  */
 data class AttackType(val code: String, val label: String, val zone: AttackZone)
 
 object AttackTypes {
     val ALL = listOf(
-        AttackType("V4", "Velocità 4 / Tesa in 4", AttackZone.POSTO4),
-        AttackType("H4", "High 4 / Alta in 4", AttackZone.POSTO4),
-        AttackType("V3", "Veloce 3 / Primo Tempo", AttackZone.POSTO3),
-        AttackType("V7", "Sette / Spostata", AttackZone.POSTO3),
-        AttackType("V5", "Incrocio / Corta dietro", AttackZone.POSTO3),
-        AttackType("V2", "Velocità 2 / Tesa in 2", AttackZone.POSTO2),
-        AttackType("H2", "High 2 / Alta in 2", AttackZone.POSTO2),
-        AttackType("VF", "Veloce Fast", AttackZone.POSTO2),
-        AttackType("VP", "Veloce Pipe", AttackZone.SECONDA_LINEA),
-        AttackType("VB", "Veloce Back", AttackZone.SECONDA_LINEA)
+        // Posto 4
+        AttackType("4.H", "Alta in 4 (4.H)", AttackZone.POSTO4),
+        AttackType("4.V", "Veloce in 4 (4.V)", AttackZone.POSTO4),
+        // Posto 3
+        AttackType("3.F", "Fast in 3 (3.F)", AttackZone.POSTO3),
+        AttackType("3.1", "Primo Tempo 3.1", AttackZone.POSTO3),
+        AttackType("3.2", "Mezza 3.2", AttackZone.POSTO3),
+        AttackType("3.7", "Sette 3.7", AttackZone.POSTO3),
+        // Posto 2
+        AttackType("2.H", "Alta in 2 (2.H)", AttackZone.POSTO2),
+        AttackType("2.V", "Veloce in 2 (2.V)", AttackZone.POSTO2),
+        // Posto 1 / Pipe / Opposto
+        AttackType("1.01.G", "Posto 1 / Servizio (1.01.G)", AttackZone.SECONDA_LINEA),
+        AttackType("P", "Pipe (P)", AttackZone.SECONDA_LINEA),
+        AttackType("O", "Opposto (O)", AttackZone.SECONDA_LINEA)
     )
 }

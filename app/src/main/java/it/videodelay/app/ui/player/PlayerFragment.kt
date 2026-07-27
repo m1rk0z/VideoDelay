@@ -39,6 +39,7 @@ import it.videodelay.app.databinding.FragmentPlayerBinding
 import it.videodelay.app.service.StreamingForegroundService
 import it.videodelay.app.service.StreamingState
 import it.videodelay.app.util.DemoVideoGenerator
+import it.videodelay.app.util.MatchManager
 import it.videodelay.app.util.ScreenshotUtil
 import it.videodelay.app.util.sanitizedForFilename
 import java.io.File
@@ -815,7 +816,7 @@ class PlayerFragment : Fragment() {
         }
         val durationSec = AttackTypeSheet.getSavedDurationSec(appCtx)
         val markPos = exoPlayer?.currentPosition ?: 0L
-        val relativeFolder = "Movies/VideoDelay/Marks/${attackType.code}"
+        val relativeFolder = MatchManager.getClipRelativePath(appCtx, "Marks/${attackType.code}")
 
         showMarkAdded(attackType)
 
@@ -925,10 +926,11 @@ class PlayerFragment : Fragment() {
         inputPath: String,
         startSec: Long,
         durationSec: Long,
-        relativeFolder: String = "Movies/VideoDelay",
+        relativeFolder: String? = null,
         fileNamePrefix: String = "VideoDelay_Clip"
     ) {
         val appCtx = context?.applicationContext ?: return
+        val targetFolder = relativeFolder ?: MatchManager.getClipRelativePath(appCtx)
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val cameraName = (viewModel.camera.value?.name ?: "Camera").sanitizedForFilename()
         val fileName = "${fileNamePrefix}_${cameraName}_$timeStamp.mp4"
@@ -957,7 +959,7 @@ class PlayerFragment : Fragment() {
                     if (session != null) {
                         val rc = session.returnCode
                         if (ReturnCode.isSuccess(rc)) {
-                            saveVideoToGallery(appCtx, tempFile, fileName, relativeFolder)
+                            saveVideoToGallery(appCtx, tempFile, fileName, targetFolder)
                             success = true
                         } else {
                             val logs = session.allLogsAsString
