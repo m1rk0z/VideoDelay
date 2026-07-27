@@ -31,11 +31,16 @@
 - **Timeline Interattiva**: Navigazione fluida lungo tutto il buffer di memoria registrato.
 - **Servizio in Foreground (`StreamingForegroundService`)**: Garantisce la registrazione continua e stabile del buffer anche con app in background.
 
-### 📹 Gestione Fotocamere & Streaming IP
-- **Supporto Sorgenti Multiple**: Compatibile con flussi video **RTSP** e **HLS**.
+### 📹 Gestione Fotocamere & Streaming IP Direct
+- **Supporto Streaming Reale**: Connessione diretta a telecamere IP con protocolli **RTSP** (`rtsp://`) e **HLS** (`http://`, `https://`).
+- **Mappatura Flusso Video Sicura**: Estrazione nativa del flusso video (`-map 0:v:0 -c:v copy`) che previene crash del muxer HLS causati da codec audio non supportati (es. G.711 PCMA/PCMU).
 - **Scanner QR Code Integrato**: Scansiona il codice QR di una videocamera IP per aggiungerla all'istante.
 - **Monitoraggio Latenza (Ping)**: Verifica in tempo reale la qualità della connessione di ogni telecamera con indicatori di ping in millisecondi.
-- **Modalità Demo**: Permette di testare tutte le funzionalità dell'app anche senza sorgenti IP collegate.
+
+### 🏐 Modalità Demo Pallavolo (Vista da Dietro la Linea di Fondo)
+- **Scena Prospettica 3D**: Riproduce un campo da pallavolo completo visto dalla linea di fondo (dietro il campo di casa) con parquet blu/arancione, righe laterali, linea dei 3 metri e rete frontale con aste/antenne regolamentari rosse e bianche.
+- **Rally Dinamico del Pallone (180s)**: Durata di 3 minuti (180s) con traiettoria animata del pallone a tre colori che passa continuamente da un campo all'altro scavalcando la rete e variando l'angolo di attacco tra le aste ad ogni rimbalzo (diagonali, attacchi centrali, lungolinea).
+- **Salvataggio Permanente (`filesDir`)**: Il file `demo_video.mp4` viene generato una volta sola nella memoria interna e caricato all'istante (1 ms) a ogni avvio dell'app senza venire mai più rigenerato.
 
 ### 📸 Cattura Screenshot & Editor Tecnico
 - **Cattura Pulita (Clean Capture)**: Durante la cattura dello screenshot, l'interfaccia (HUD, loghi e pannelli) viene nascosta per una frazione di secondo, estraendo il frame video nativo a risoluzione piena.
@@ -59,7 +64,7 @@
 | **Linguaggio** | Kotlin |
 | **Min SDK** | API 24 (Android 7.0) |
 | **Target SDK** | API 34+ (Android 14) |
-| **Media Engine** | AndroidX Media3 / ExoPlayer |
+| **Media Engine** | AndroidX Media3 / ExoPlayer & FFmpegKit |
 | **QR Scanner** | ZXing Embedded |
 | **Async Tasks & State** | Kotlin Coroutines, LiveData, ViewModel |
 | **UI Components** | Material Components, ConstraintLayout, ViewBinding |
