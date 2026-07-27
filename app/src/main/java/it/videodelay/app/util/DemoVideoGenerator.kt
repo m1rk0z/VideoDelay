@@ -18,10 +18,8 @@ object DemoVideoGenerator {
 
     private const val TAG = "DemoVideoGenerator"
 
-    // ──────────────────────────── Pre-generazione ──────────────────
-    // Permette di avviare la generazione già dalla schermata elenco camere e di bloccare
-    // l'ingresso nella Demo Camera finché non è pronta, invece di farla partire (e attendere)
-    // dentro il player stesso.
+    /** Restituisce il file permanente del video demo in filesDir (mai rimosso automaticamente dal sistema). */
+    fun getDemoFile(context: Context): File = File(context.filesDir, "demo_video.mp4")
 
     private val _isReady = MutableLiveData(false)
     /** True quando il video demo è pronto per essere riprodotto (o il tentativo è concluso). */
@@ -30,7 +28,7 @@ object DemoVideoGenerator {
 
     /** Avvia la generazione in background se non è già stata avviata in questa sessione app. */
     fun ensureGenerated(context: Context) {
-        val outputFile = File(context.cacheDir, "demo_video.mp4")
+        val outputFile = getDemoFile(context)
         if (isValidMp4(outputFile)) {
             _isReady.value = true
             return
@@ -45,24 +43,14 @@ object DemoVideoGenerator {
     }
 
     /**
-     * Genera un video di test da 180 secondi (scena di pallavolo sintetica) nella cache
-     * dell'app se non esiste già.
-     * - Campo visto di lato: parete palestra, parquet, rete al centro
-     * - Pallone che rimbalza campo a campo con archi paraboloici (rende visibile il delay)
-     * - Timestamp + contatore secondi in ALTO (zona libera dai controlli in basso)
-     * - Badge "● DEMO" in alto a destra e barra di avanzamento in basso
+     * Dimensione minima attesa per il video demo 60s a 1280x720 @ 1.5Mbps (circa 10MB).
      */
-    // Dimensione minima attesa per il video demo 180s a 1280x720 @ 2Mbps (circa 45MB).
-    // Tenuta prudenziale per tollerare variazioni del bitrate reale dell'encoder.
-    private const val MIN_EXPECTED_BYTES = 22_000_000L // 22 MB
+    private const val MIN_EXPECTED_BYTES = 4_000_000L // 4 MB
 
     /**
-     * Verifica che il file sia un MP4 completo e decodificabile (contiene il moov atom).
-     * Necessario perché una generazione interrotta a metà (app in background, processo ucciso
-     * dal sistema) lascia un file grande ma privo del moov atom, scritto solo da muxer.stop()
-     * a fine generazione: senza questo controllo verrebbe riusato per sempre come se fosse valido.
+     * Verifica che il file sia un MP4 completo e decodificabile.
      */
-    private fun isValidMp4(file: File): Boolean {
+    fun isValidMp4(file: File): Boolean {
         if (!file.exists() || file.length() < MIN_EXPECTED_BYTES) return false
         return try {
             val retriever = android.media.MediaMetadataRetriever()
@@ -87,25 +75,18 @@ object DemoVideoGenerator {
             outputFile.delete()
         }
 
-        // Genera su un file temporaneo e lo rinomina solo a generazione completata: se il
-        // processo viene interrotto a metà, il file finale "demo_video.mp4" non esiste mai
-        // in stato parziale/corrotto.
         val tempFile = File(outputFile.parentFile, "${outputFile.name}.tmp")
         if (tempFile.exists()) tempFile.delete()
 
-        Log.d(TAG, "Avvio generazione video demo 180s (scena pallavolo) in corso...")
+        Log.d(TAG, "Avvio generazione video demo 60s (scena pallavolo vista da dietro)...")
         try {
             val width = 1280
             val height = 720
-            val bitRate = 2_000_000 // 2 Mbps
+            val bitRate = 1_500_000 // 1.5 Mbps
             val frameRate = 30
-            val durationSec = 180
-            val totalFrames = durationSec * frameRate // 5400
+            val durationSec = 60
+            val totalFrames = durationSec * frameRate // 1800 frames
 
-            // COLOR_FormatYUV420Flexible + getInputImage(): l'unica combinazione con layout
-            // (stride/pixel-stride) garantito corretto su tutti gli encoder hardware reali.
-            // Il vecchio approccio (SemiPlanar "tight-packed" via ByteBuffer) produceva video
-            // che si mux-avano senza errori ma con frame neri/corrotti su molti telefoni.
             val format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height).apply {
                 setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible)
                 setInteger(MediaFormat.KEY_BIT_RATE, bitRate)
@@ -126,43 +107,60 @@ object DemoVideoGenerator {
             val canvas = Canvas(bitmap)
             val argb = IntArray(width * height)
 
-            // ── Palette scena pallavolo (palestra) ──
-            val colorWall = Color.parseColor("#1E3A5F")     // parete blu palestra
-            val colorFloor = Color.parseColor("#D98A3D")    // parquet arancione
-            val colorFloorLine = Color.parseColor("#F5F5F5") // righe campo bianche
-            val colorNet = Color.parseColor("#F5F5F5")       // rete bianca
+            // ── Palette Scena Pallavolo (Vista da dietro la linea di fondo) ──
+            val colorSky = Color.parseColor("#0F172A")       // Parete palestra blu navy
+            val colorCourtBlue = Color.parseColor("#1D4ED8")  // Area di gioco blu
+            val colorSurround = Color.parseColor("#C2410C")   // Perimetro arancione
+            val colorLine = Color.parseColor("#FFFFFF")       // Righe di campo bianche
+            val colorNetBand = Color.parseColor("#FFFFFF")   // Banda superiore rete
+            val colorAntenna = Color.parseColor("#EF4444")   // Aste antenne rosse
 
             val paintFill = Paint().apply { isAntiAlias = true }
-
-            val paintCourtLine = Paint().apply {
-                color = colorFloorLine
+            val paintLine = Paint().apply {
+                color = colorLine
                 strokeWidth = 6f
                 style = Paint.Style.STROKE
                 isAntiAlias = true
             }
 
-            val paintNet = Paint().apply {
-                color = colorNet
+            val paintNetMesh = Paint().apply {
+                color = Color.parseColor("#D1D5DB")
                 strokeWidth = 2f
                 style = Paint.Style.STROKE
                 alpha = 200
                 isAntiAlias = true
             }
 
-            val paintBall = Paint().apply {
-                color = Color.parseColor("#FFEB3B") // pallone giallo
+            val paintAntenna = Paint().apply {
+                color = colorAntenna
+                strokeWidth = 5f
+                style = Paint.Style.STROKE
+                isAntiAlias = true
+            }
+
+            val paintBallYellow = Paint().apply {
+                color = Color.parseColor("#FACC15")
+                isAntiAlias = true
+            }
+            val paintBallBlue = Paint().apply {
+                color = Color.parseColor("#2563EB")
                 isAntiAlias = true
             }
             val paintBallSeam = Paint().apply {
-                color = Color.parseColor("#0D47A1")
-                strokeWidth = 4f
+                color = Color.parseColor("#1E293B")
+                strokeWidth = 3f
                 style = Paint.Style.STROKE
+                isAntiAlias = true
+            }
+
+            val paintShadow = Paint().apply {
+                color = Color.parseColor("#40000000")
                 isAntiAlias = true
             }
 
             val paintCounter = Paint().apply {
                 color = Color.WHITE
-                textSize = 120f
+                textSize = 100f
                 textAlign = Paint.Align.CENTER
                 isAntiAlias = true
                 typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
@@ -170,41 +168,50 @@ object DemoVideoGenerator {
             }
 
             val paintLabel = Paint().apply {
-                color = Color.WHITE
-                textSize = 40f
+                color = Color.parseColor("#38BDF8")
+                textSize = 34f
                 textAlign = Paint.Align.CENTER
                 isAntiAlias = true
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 setShadowLayer(4f, 2f, 2f, Color.BLACK)
             }
 
-            // Timestamp in ALTO (non coperto dai controlli che sono in basso)
             val paintTime = Paint().apply {
                 color = Color.WHITE
-                textSize = 40f
+                textSize = 36f
                 textAlign = Paint.Align.CENTER
                 isAntiAlias = true
                 typeface = Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL)
                 setShadowLayer(4f, 2f, 2f, Color.BLACK)
             }
 
-            // Badge "DEMO" in alto a destra
             val paintDemo = Paint().apply {
-                color = Color.parseColor("#FF5722")
-                textSize = 38f
+                color = Color.parseColor("#F97316")
+                textSize = 36f
                 isAntiAlias = true
                 typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
                 setShadowLayer(3f, 1f, 1f, Color.BLACK)
             }
 
-            // Geometria campo (vista laterale)
-            val floorTop = height * 0.62f
-            val netX = width / 2f
-            val netTopY = height * 0.28f
-            val ballRadius = 34f
-            // Traiettoria: il pallone va avanti e indietro sopra la rete con archi paraboloici.
-            // Un "rally" completo (andata+ritorno) dura ~4s per rendere ben visibile il delay.
-            val rallyFrames = frameRate * 4
+            // Geometria campo in prospettiva 3D vista da dietro (dalla linea di fondo vicina)
+            val vanishingX = width / 2f
+            val vanishingY = height * 0.32f
+
+            val floorTopY = height * 0.38f
+            val floorBottomY = height.toFloat()
+
+            val courtFarLeft = width * 0.36f
+            val courtFarRight = width * 0.64f
+            val courtNearLeft = -width * 0.05f
+            val courtNearRight = width * 1.05f
+
+            // Rete al centro del campo
+            val netCenterY = height * 0.52f
+            val netTopY = height * 0.36f
+            val netLeftX = width * 0.22f
+            val netRightX = width * 0.78f
+
+            val rallyFrames = frameRate * 3 // Un passaggio di pallone dura 3s
 
             var frameIndex = 0
             var inputDone = false
@@ -221,70 +228,144 @@ object DemoVideoGenerator {
                         } else {
                             val seconds = frameIndex / frameRate
 
-                            // ── PARETE PALESTRA ──
-                            paintFill.color = colorWall
-                            canvas.drawRect(0f, 0f, width.toFloat(), floorTop, paintFill)
+                            // ── 1. SPALTI E PARETE PALESTRA (Sfondo) ──
+                            paintFill.color = colorSky
+                            canvas.drawRect(0f, 0f, width.toFloat(), floorTopY, paintFill)
 
-                            // ── PARQUET ──
-                            paintFill.color = colorFloor
-                            canvas.drawRect(0f, floorTop, width.toFloat(), height.toFloat(), paintFill)
+                            // Luci palazzetto in alto
+                            paintFill.color = Color.parseColor("#38BDF8")
+                            paintFill.alpha = 80
+                            canvas.drawCircle(width * 0.25f, 60f, 40f, paintFill)
+                            canvas.drawCircle(width * 0.75f, 60f, 40f, paintFill)
+                            paintFill.alpha = 255
 
-                            // Righe campo (linea di fondo prospettica + linea centrale sotto la rete)
-                            canvas.drawLine(0f, floorTop, width.toFloat(), floorTop, paintCourtLine)
-                            canvas.drawLine(netX, floorTop, netX, height.toFloat(), paintCourtLine)
-                            canvas.drawLine(width * 0.18f, height.toFloat(), width * 0.32f, floorTop, paintCourtLine)
-                            canvas.drawLine(width * 0.82f, height.toFloat(), width * 0.68f, floorTop, paintCourtLine)
-
-                            // ── RETE al centro ──
-                            paintFill.color = Color.parseColor("#37474F")
-                            canvas.drawRect(netX - 5f, netTopY, netX + 5f, floorTop, paintFill) // palo
-                            // banda superiore rete
-                            paintFill.color = colorNet
-                            canvas.drawRect(netX - 70f, netTopY, netX + 70f, netTopY + 14f, paintFill)
-                            // maglie rete
-                            for (gx in -70..70 step 14) {
-                                canvas.drawLine(netX + gx, netTopY + 14f, netX + gx, floorTop, paintNet)
+                            // ── 2. PAVIMENTO FUORI CAMPO (Arancione) ──
+                            val surroundPath = Path().apply {
+                                moveTo(0f, floorTopY)
+                                lineTo(width.toFloat(), floorTopY)
+                                lineTo(width.toFloat(), floorBottomY)
+                                lineTo(0f, floorBottomY)
+                                close()
                             }
-                            for (gy in netTopY.toInt()..floorTop.toInt() step 16) {
-                                canvas.drawLine(netX - 70f, gy.toFloat(), netX + 70f, gy.toFloat(), paintNet)
+                            paintFill.color = colorSurround
+                            canvas.drawPath(surroundPath, paintFill)
+
+                            // ── 3. CAMPO DA GIOCO BLU IN PROSPETTIVA ──
+                            val courtPath = Path().apply {
+                                moveTo(courtFarLeft, floorTopY)
+                                lineTo(courtFarRight, floorTopY)
+                                lineTo(courtNearRight, floorBottomY)
+                                lineTo(courtNearLeft, floorBottomY)
+                                close()
+                            }
+                            paintFill.color = colorCourtBlue
+                            canvas.drawPath(courtPath, paintFill)
+
+                            // ── 4. RIGHE BIANCHE DEL CAMPO IN PROSPETTIVA ──
+                            // Linee laterali
+                            canvas.drawLine(courtNearLeft, floorBottomY, courtFarLeft, floorTopY, paintLine)
+                            canvas.drawLine(courtNearRight, floorBottomY, courtFarRight, floorTopY, paintLine)
+                            // Linea di fondo vicina
+                            canvas.drawLine(0f, floorBottomY - 4f, width.toFloat(), floorBottomY - 4f, paintLine)
+                            // Linea di fondo opposta
+                            canvas.drawLine(courtFarLeft, floorTopY, courtFarRight, floorTopY, paintLine)
+
+                            // Linea centrale sotto la rete (y = netCenterY)
+                            val centerLeftX = courtNearLeft + (courtFarLeft - courtNearLeft) * 0.68f
+                            val centerRightX = courtNearRight - (courtNearRight - courtFarRight) * 0.68f
+                            canvas.drawLine(centerLeftX, netCenterY, centerRightX, netCenterY, paintLine)
+
+                            // Linea dei 3 metri vicina (campo del giocatore)
+                            val att3mNearY = height * 0.74f
+                            val attNearLeftX = courtNearLeft + (courtFarLeft - courtNearLeft) * 0.35f
+                            val attNearRightX = courtNearRight - (courtNearRight - courtFarRight) * 0.35f
+                            canvas.drawLine(attNearLeftX, att3mNearY, attNearRightX, att3mNearY, paintLine)
+
+                            // Linea dei 3 metri opposta (campo avversario)
+                            val att3mFarY = height * 0.44f
+                            val attFarLeftX = courtNearLeft + (courtFarLeft - courtNearLeft) * 0.84f
+                            val attFarRightX = courtNearRight - (courtNearRight - courtFarRight) * 0.84f
+                            canvas.drawLine(attFarLeftX, att3mFarY, attFarRightX, att3mFarY, paintLine)
+
+                            // ── 5. RETE DA PALLAVOLO FRONTALE / PROSPETTICA ──
+                            // Pali di sostegno laterali
+                            paintFill.color = Color.parseColor("#475569")
+                            canvas.drawRect(netLeftX - 6f, netTopY - 10f, netLeftX + 6f, netCenterY + 40f, paintFill)
+                            canvas.drawRect(netRightX - 6f, netTopY - 10f, netRightX + 6f, netCenterY + 40f, paintFill)
+
+                            // Maglia della rete
+                            val cols = 24
+                            val rows = 6
+                            for (c in 0..cols) {
+                                val rx = netLeftX + (netRightX - netLeftX) * c / cols
+                                canvas.drawLine(rx, netTopY, rx, netCenterY, paintNetMesh)
+                            }
+                            for (r in 0..rows) {
+                                val ry = netTopY + (netCenterY - netTopY) * r / rows
+                                canvas.drawLine(netLeftX, ry, netRightX, ry, paintNetMesh)
                             }
 
-                            // ── PALLONE con traiettoria a parabola sopra la rete ──
+                            // Banda superiore bianca della rete
+                            paintFill.color = colorNetBand
+                            canvas.drawRect(netLeftX - 10f, netTopY - 8f, netRightX + 10f, netTopY + 4f, paintFill)
+
+                            // Antenne bianche e rosse ai lati della rete
+                            val antennaLeftX = centerLeftX + (centerRightX - centerLeftX) * 0.08f
+                            val antennaRightX = centerRightX - (centerRightX - centerLeftX) * 0.08f
+                            canvas.drawLine(antennaLeftX, netTopY - 70f, antennaLeftX, netCenterY, paintAntenna)
+                            canvas.drawLine(antennaRightX, netTopY - 70f, antennaRightX, netCenterY, paintAntenna)
+
+                            // ── 6. ANIMAZIONE PALLONE (Schiacciata / Rimbalzo sopra la rete) ──
                             val phase = (frameIndex % rallyFrames).toFloat() / rallyFrames // 0..1
-                            // t va 0→1→0 (andata e ritorno) per far rimbalzare il pallone campo a campo
                             val t = if (phase < 0.5f) phase * 2f else (1f - phase) * 2f
-                            val ballX = width * 0.2f + (width * 0.6f) * t
-                            // arco: massimo in alto a metà percorso
-                            val arc = Math.sin(Math.PI * t).toFloat()
-                            val ballY = floorTop - 40f - (floorTop - netTopY - 60f) * arc
-                            paintBall.color = Color.parseColor("#FFEB3B")
-                            canvas.drawCircle(ballX, ballY, ballRadius, paintBall)
-                            // cuciture pallone
-                            canvas.drawCircle(ballX, ballY, ballRadius, paintBallSeam)
-                            canvas.drawLine(ballX - ballRadius, ballY, ballX + ballRadius, ballY, paintBallSeam)
-                            canvas.drawLine(ballX, ballY - ballRadius, ballX, ballY + ballRadius, paintBallSeam)
 
-                            // ── TIMESTAMP IN ALTO (zona libera) ──
+                            // Il pallone parte vicino dal campo di qua (grande) e va verso il campo di la (piccolo)
+                            val ballX = width * 0.38f + (width * 0.24f) * t
+                            val ballY = (floorBottomY - 120f) - (floorBottomY - netTopY - 140f) * Math.sin(Math.PI * t).toFloat()
+                            val ballRadius = 38f - (18f * t) // diminuisce per prospettiva
+
+                            // Ombra del pallone sul pavimento
+                            val shadowY = netCenterY + (floorBottomY - 160f - netCenterY) * (1f - t)
+                            canvas.drawOval(
+                                ballX - ballRadius * 1.2f, shadowY - 8f,
+                                ballX + ballRadius * 1.2f, shadowY + 8f,
+                                paintShadow
+                            )
+
+                            // Disegno Pallone da Pallavolo a colori (Giallo/Blu/Bianco)
+                            canvas.drawCircle(ballX, ballY, ballRadius, paintBallYellow)
+                            // Pannello blu curvo
+                            val bluePath = Path().apply {
+                                addArc(ballX - ballRadius, ballY - ballRadius, ballX + ballRadius, ballY + ballRadius, 30f, 120f)
+                                lineTo(ballX, ballY)
+                                close()
+                            }
+                            canvas.drawPath(bluePath, paintBallBlue)
+                            // Cuciture
+                            canvas.drawCircle(ballX, ballY, ballRadius, paintBallSeam)
+                            canvas.drawLine(ballX - ballRadius * 0.7f, ballY, ballX + ballRadius * 0.7f, ballY, paintBallSeam)
+                            canvas.drawLine(ballX, ballY - ballRadius * 0.7f, ballX, ballY + ballRadius * 0.7f, paintBallSeam)
+
+                            // ── 7. TESTI E TIMESTAMP (IN ALTO - ZONA LIBERA) ──
                             val simTime = System.currentTimeMillis() - (durationSec - seconds) * 1000L
                             val timeStr = sdf.format(Date(simTime))
-                            canvas.drawText(timeStr, width / 2f, 60f, paintTime)
+                            canvas.drawText(timeStr, width / 2f, 55f, paintTime)
 
-                            // ── BADGE "● DEMO" in alto a destra ──
-                            canvas.drawText("● DEMO", width - 120f, 55f, paintDemo)
+                            canvas.drawText("● DEMO", width - 110f, 50f, paintDemo)
 
-                            // ── CONTATORE SECONDI in alto (per misurare il delay) ──
-                            canvas.drawText("${seconds}s", width / 2f, 150f, paintCounter)
+                            // Contatore dei secondi enorme al centro in alto
+                            canvas.drawText("${seconds}s", width / 2f, 145f, paintCounter)
 
-                            // ── LABEL in alto ──
-                            canvas.drawText("VideoDelay • Pallavolo Demo", width / 2f, 195f, paintLabel)
+                            // Titolo applicazione
+                            canvas.drawText("VideoDelay • Pallavolo Demo", width / 2f, 185f, paintLabel)
 
-                            // ── BARRA PROGRESSO in basso (ma sopra i controlli UI) ──
+                            // ── BARRA PROGRESSO IN BASSO ──
                             val progressWidth = (width.toFloat() * seconds / durationSec)
                             val progressPaint = Paint().apply {
-                                color = Color.WHITE
-                                alpha = 100
+                                color = Color.parseColor("#38BDF8")
+                                alpha = 180
                             }
-                            canvas.drawRect(0f, height - 12f, progressWidth, height.toFloat(), progressPaint)
+                            canvas.drawRect(0f, height - 10f, progressWidth, height.toFloat(), progressPaint)
 
                             bitmap.getPixels(argb, 0, width, 0, 0, width, height)
                             val inputBuffer = codec.getInputBuffer(inputBufferIndex)!!
@@ -329,7 +410,7 @@ object DemoVideoGenerator {
                 tempFile.copyTo(outputFile, overwrite = true)
                 tempFile.delete()
             }
-            Log.d(TAG, "Video demo 180s (pallavolo) generato: ${outputFile.length()} bytes")
+            Log.d(TAG, "Video demo 60s (pallavolo vista da dietro) generato: ${outputFile.length()} bytes")
             return true
         } catch (e: Exception) {
             Log.e(TAG, "Errore generazione video demo", e)
@@ -338,12 +419,6 @@ object DemoVideoGenerator {
         }
     }
 
-    /**
-     * Scrive i pixel ARGB nei piani Y/U/V dell'[android.media.Image] restituito da
-     * [MediaCodec.getInputImage], rispettando rowStride/pixelStride reali dell'encoder.
-     * Necessario perché molti encoder hardware Android non usano un layout NV12 "tight-packed":
-     * scrivere assumendo stride == width produce frame neri o corrotti su diversi telefoni reali.
-     */
     private fun fillYuvImageFromArgb(image: android.media.Image, argb: IntArray, width: Int, height: Int) {
         val yPlane = image.planes[0]
         val uPlane = image.planes[1]

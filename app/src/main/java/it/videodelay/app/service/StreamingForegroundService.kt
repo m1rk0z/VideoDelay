@@ -165,51 +165,27 @@ class StreamingForegroundService : Service() {
         thread(start = true) {
             val maxSegments = bufferDurationSec / CircularHlsBuffer.SEGMENT_DURATION_SEC
 
-                // Comando FFmpeg per registrare da stream RTSP reale (con log di debug abilitato)
                 val command = if (rtspUrl.startsWith("demo://")) {
-                    // Configura il video demo in loop
-                    val demoFile = File(cacheDir, "demo_video.mp4")
+                    // Configura il video demo in loop (salvato in filesDir permanente)
+                    val demoFile = DemoVideoGenerator.getDemoFile(this@StreamingForegroundService)
                     val demoOk = DemoVideoGenerator.generateDemoVideoIfNeeded(demoFile)
 
                     if (demoOk && demoFile.exists() && demoFile.length() > 0) {
                         Log.d(TAG, "Video demo pronto (${demoFile.length()} bytes). Avvio FFmpeg HLS loop.")
-                        // Comando FFmpeg per loop del file locale ad andatura reale (-re)
                         "-y -re -stream_loop -1 -i ${demoFile.absolutePath} -c copy -f hls -hls_time 1 -hls_list_size $maxSegments -hls_flags delete_segments+program_date_time+temp_file -hls_segment_filename ${buffer.bufferDir.absolutePath}/segment_%05d.ts ${buffer.playlistFile.absolutePath}"
                     } else {
-                        // Fallback: genera un segnale sintetico colorato con FFmpeg (testsrc2)
-                        Log.w(TAG, "Video demo non disponibile o vuoto. Uso segnale sintetico FFmpeg testsrc2.")
-                        "-y -f lavfi -i testsrc2=size=640x480:rate=30 -c:v libx264 -preset ultrafast -tune zerolatency -f hls -hls_time 1 -hls_list_size $maxSegments -hls_flags delete_segments+program_date_time+temp_file -hls_segment_filename ${buffer.bufferDir.absolutePath}/segment_%05d.ts ${buffer.playlistFile.absolutePath}"
+                        Log.w(TAG, "Video demo non disponibile. Uso segnale sintetico FFmpeg testsrc2.")
+                        "-y -f lavfi -i testsrc2=size=1280x720:rate=30 -c:v libx264 -preset ultrafast -tune zerolatency -f hls -hls_time 1 -hls_list_size $maxSegments -hls_flags delete_segments+program_date_time+temp_file -hls_segment_filename ${buffer.bufferDir.absolutePath}/segment_%05d.ts ${buffer.playlistFile.absolutePath}"
                     }
                 } else {
-                    // Avvia proxy RTSP locale per correggere il bug CSeq del server AndroidIPCamLive.
-                    // Il proxy intercetta le risposte del server e aggiusta i CSeq errati prima di
-                    // passarli a FFmpegKit, che è strict RFC-compliant.
-                    val ffmpegUrl = try {
-                        val uri = URI(rtspUrl)
-                        val host = uri.host ?: ""
-                        val port = if (uri.port > 0) uri.port else 554
-                        val userInfo = uri.userInfo
-                        val query = uri.query
-                        val rawPath = uri.rawPath
-                        val pathPart = if (rawPath.isNullOrEmpty()) "/" else rawPath
+                    Log.d(TAG, "Avvio registrazione HLS buffer per $cameraName: $rtspUrl")
+                    Log.d("RTSP", "Avvio connessione con URL: $rtspUrl")
 
-                        val proxy = RtspCSeqProxy()
-                        proxy.start(host, port)
-                        rtspProxy = proxy
+                    val isRtsp = rtspUrl.startsWith("rtsp://", ignoreCase = true)
+                    val transportFlags = if (isRtsp) "-rtsp_transport tcp -rtsp_flags prefer_tcp " else ""
 
-                        val userPart = if (userInfo != null) "$userInfo@" else ""
-                        val queryPart = if (query != null) "?$query" else ""
-                        val url = "rtsp://${userPart}127.0.0.1:${proxy.proxyPort}$pathPart$queryPart"
-                        Log.i(TAG, "Proxy RTSP avviato: $rtspUrl → $url")
-                        url
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Impossibile avviare proxy RTSP, uso URL diretto: ${e.message}")
-                        rtspUrl
-                    }
-                    Log.d(TAG, "Avvio registrazione HLS buffer per $cameraName: $ffmpegUrl")
-                    Log.d("RTSP", "Avvio connessione con URL (via proxy): $ffmpegUrl")
-                    // TCP interleaved tramite proxy locale
-                    "-y -loglevel debug -rtsp_transport tcp -rtsp_flags prefer_tcp -allowed_media_types video -thread_queue_size 1024 -analyzeduration 100000 -probesize 100000 -i $ffmpegUrl -c copy -f hls -hls_time 1 -hls_list_size $maxSegments -hls_flags delete_segments+program_date_time+temp_file -hls_segment_filename ${buffer.bufferDir.absolutePath}/segment_%05d.ts ${buffer.playlistFile.absolutePath}"
+                    // Mappiamo solo il flusso video 0:v:0 per evitare fallimenti dovuti a codec audio incompatibili (es. G.711 PCMA/PCMU) con il container MPEG-TS HLS
+                    "-y -loglevel info $transportFlags-thread_queue_size 1024 -analyzeduration 3000000 -probesize 2000000 -i \"$rtspUrl\" -map 0:v:0 -c:v copy -sn -f hls -hls_time 1 -hls_list_size $maxSegments -hls_flags delete_segments+program_date_time+temp_file -hls_segment_filename ${buffer.bufferDir.absolutePath}/segment_%05d.ts ${buffer.playlistFile.absolutePath}"
                 }
 
                 Log.d("BUFFER", "Comando FFmpeg: $command")

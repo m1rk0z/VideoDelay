@@ -227,7 +227,7 @@ class PlayerFragment : Fragment() {
     private fun startDemoPlayer() {
         if (_binding == null || !isAdded) return
 
-        val demoFile = File(requireContext().cacheDir, "demo_video.mp4")
+        val demoFile = DemoVideoGenerator.getDemoFile(requireContext())
 
         if (!demoFile.exists() || demoFile.length() == 0L) {
             Log.d(TAG, "Generazione video demo in background...")
@@ -737,7 +737,7 @@ class PlayerFragment : Fragment() {
             return
         }
         if (isDemo) {
-            val demoFile = File(appCtx.cacheDir, "demo_video.mp4")
+            val demoFile = DemoVideoGenerator.getDemoFile(appCtx)
             if (!demoFile.exists()) {
                 Toast.makeText(requireContext(), "File demo non disponibile", Toast.LENGTH_SHORT).show()
                 return
@@ -820,7 +820,7 @@ class PlayerFragment : Fragment() {
         showMarkAdded(attackType)
 
         if (isDemo) {
-            val demoFile = File(appCtx.cacheDir, "demo_video.mp4")
+            val demoFile = DemoVideoGenerator.getDemoFile(appCtx)
             if (!demoFile.exists()) {
                 Toast.makeText(requireContext(), "File demo non disponibile", Toast.LENGTH_SHORT).show()
                 return
