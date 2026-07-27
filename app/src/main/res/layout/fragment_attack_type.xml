@@ -11,6 +11,7 @@
         android:orientation="vertical"
         android:padding="10dp">
 
+        <!-- Barra superiore: Invertito ordine (Orologio a sinistra, Titolo a destra) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -18,37 +19,43 @@
             android:gravity="center_vertical"
             android:layout_marginBottom="8dp">
 
+            <Button
+                android:id="@+id/btn_attack_duration"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="⏱️ 3s"
+                android:textColor="@color/accent_blue"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:background="@drawable/btn_icon_bg"
+                android:paddingHorizontal="10dp"
+                android:contentDescription="Cambia durata clip" />
+
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:gravity="end"
                 android:text="📌 Tipo di attacco"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
-
-            <ImageButton
-                android:id="@+id/btn_attack_duration"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:src="@android:drawable/ic_menu_recent_history"
-                android:background="@drawable/btn_icon_bg"
-                android:contentDescription="Durata clip"
-                android:tint="@color/text_secondary" />
 
         </LinearLayout>
 
-        <!-- Colonne per zona, stile scout: una colonna per zona, pulsanti quadrati impilati -->
+        <!-- 5 Colonne per zona stile scout: P.4, P.3, P.2, P.1, P/O -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+            <!-- P.4 -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="3dp"
+                android:layout_marginEnd="2dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -64,11 +71,12 @@
 
             </LinearLayout>
 
+            <!-- P.3 -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginHorizontal="3dp"
+                android:layout_marginHorizontal="2dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -84,11 +92,12 @@
 
             </LinearLayout>
 
+            <!-- P.2 -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginHorizontal="3dp"
+                android:layout_marginHorizontal="2dp"
                 android:orientation="vertical">
 
                 <TextView
@@ -104,17 +113,39 @@
 
             </LinearLayout>
 
+            <!-- P.1 (1.0 e 1.G) -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="3dp"
+                android:layout_marginHorizontal="2dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_col_posto1_header"
+                    style="@style/AttackColumnHeader"
+                    android:text="P.1" />
+
+                <LinearLayout
+                    android:id="@+id/layout_col_posto1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <!-- P / O (Pipe / Opposto) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="2dp"
                 android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/tv_col_seconda_linea_header"
                     style="@style/AttackColumnHeader"
-                    android:text="P.1 / P / O" />
+                    android:text="P/O" />
 
                 <LinearLayout
                     android:id="@+id/layout_col_seconda_linea"

@@ -4,7 +4,7 @@ import it.videodelay.app.R
 
 /** Zona di attacco a pallavolo, usata per raggruppare e colorare i tipi nel popup MARK e in galleria. */
 enum class AttackZone {
-    POSTO4, POSTO3, POSTO2, SECONDA_LINEA
+    POSTO4, POSTO3, POSTO2, POSTO1, SECONDA_LINEA
 }
 
 /** Colore associato alla zona, condiviso tra popup MARK e galleria clip. */
@@ -12,7 +12,8 @@ fun AttackZone.colorRes(): Int = when (this) {
     AttackZone.POSTO4 -> R.color.colorSecondary
     AttackZone.POSTO3 -> R.color.mark_yellow
     AttackZone.POSTO2 -> R.color.live_red
-    AttackZone.SECONDA_LINEA -> R.color.colorPrimary
+    AttackZone.POSTO1 -> R.color.colorPrimary
+    AttackZone.SECONDA_LINEA -> R.color.accent_blue
 }
 
 /**
@@ -34,8 +35,10 @@ object AttackTypes {
         // Posto 2
         AttackType("2.H", "Alta in 2 (2.H)", AttackZone.POSTO2),
         AttackType("2.V", "Veloce in 2 (2.V)", AttackZone.POSTO2),
-        // Posto 1 / Pipe / Opposto
-        AttackType("1.01.G", "Posto 1 / Servizio (1.01.G)", AttackZone.SECONDA_LINEA),
+        // Posto 1 (separato da P e O)
+        AttackType("1.0", "Posto 1 (1.0)", AttackZone.POSTO1),
+        AttackType("1.G", "Servizio / Spostata (1.G)", AttackZone.POSTO1),
+        // Pipe e Opposto (separati da 1.0 e 1.G)
         AttackType("P", "Pipe (P)", AttackZone.SECONDA_LINEA),
         AttackType("O", "Opposto (O)", AttackZone.SECONDA_LINEA)
     )

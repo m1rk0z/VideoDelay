@@ -5,6 +5,7 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.core.content.ContextCompat
@@ -29,9 +30,8 @@ object AttackTypeSheet {
             .edit().putInt(KEY_DURATION_SEC, seconds).apply()
     }
 
-    // Testo nero su sfondo ciano brillante (colorPrimary) per contrasto WCOG, bianco sulle altre zone.
     private fun zoneTextColorRes(zone: AttackZone): Int =
-        if (zone == AttackZone.SECONDA_LINEA) android.R.color.black else android.R.color.white
+        if (zone == AttackZone.POSTO1 || zone == AttackZone.SECONDA_LINEA) android.R.color.black else android.R.color.white
 
     /** Mostra il popup ancorato ad [anchor] (il pulsante MARK), sopra di esso e allineato a destra. */
     fun show(anchor: View, onAttackTypeSelected: (AttackType) -> Unit) {
@@ -49,12 +49,16 @@ object AttackTypeSheet {
             elevation = 24f
         }
 
-        binding.btnAttackDuration.setOnClickListener { showDurationMenu(it) }
+        // Imposta il testo dinamico dell'orologio/durata
+        val savedSec = getSavedDurationSec(context)
+        binding.btnAttackDuration.text = "⏱️ ${savedSec}s"
+        binding.btnAttackDuration.setOnClickListener { showDurationMenu(binding.btnAttackDuration) }
 
         val columnByZone = mapOf(
             AttackZone.POSTO4 to binding.layoutColPosto4,
             AttackZone.POSTO3 to binding.layoutColPosto3,
             AttackZone.POSTO2 to binding.layoutColPosto2,
+            AttackZone.POSTO1 to binding.layoutColPosto1,
             AttackZone.SECONDA_LINEA to binding.layoutColSecondaLinea
         )
         AttackTypes.ALL.forEach { attackType ->
@@ -62,10 +66,8 @@ object AttackTypeSheet {
             addAttackSquare(inflater, column, attackType, popupWindow, onAttackTypeSelected)
         }
 
-        // Larghezza fissa e altezza limitata (scrollabile solo se serve) per stare sopra il
-        // pulsante anche in landscape, dove lo spazio verticale disponibile è ridotto.
         val density = context.resources.displayMetrics.density
-        val popupWidthPx = (340 * density).toInt()
+        val popupWidthPx = (380 * density).toInt()
         val maxHeightPx = (anchor.rootView.height * 0.7f).toInt().coerceAtLeast((160 * density).toInt())
 
         binding.root.measure(
@@ -77,7 +79,6 @@ object AttackTypeSheet {
         popupWindow.width = popupWidthPx
         popupWindow.height = popupHeightPx
 
-        // Allinea il bordo destro del popup al bordo destro del pulsante MARK, aperto verso l'alto.
         val xOffset = anchor.width - popupWidthPx
         val yOffset = -(popupHeightPx + anchor.height)
         popupWindow.showAsDropDown(anchor, xOffset, yOffset)
@@ -103,16 +104,18 @@ object AttackTypeSheet {
         column.addView(squareBinding.root)
     }
 
-    private fun showDurationMenu(anchor: View) {
-        val context = anchor.context
+    private fun showDurationMenu(button: Button) {
+        val context = button.context
         val currentDuration = getSavedDurationSec(context)
-        val popupMenu = PopupMenu(context, anchor)
+        val popupMenu = PopupMenu(context, button)
         DURATION_OPTIONS.forEachIndexed { index, seconds ->
             val title = if (seconds == currentDuration) "✓ ${seconds}s" else "${seconds}s"
             popupMenu.menu.add(0, index, index, title)
         }
         popupMenu.setOnMenuItemClickListener { item ->
-            setSavedDurationSec(context, DURATION_OPTIONS[item.itemId])
+            val selectedSec = DURATION_OPTIONS[item.itemId]
+            setSavedDurationSec(context, selectedSec)
+            button.text = "⏱️ ${selectedSec}s"
             true
         }
         popupMenu.show()
