@@ -43,9 +43,9 @@ object DemoVideoGenerator {
     }
 
     /**
-     * Dimensione minima attesa per il video demo 60s a 1280x720 @ 1.5Mbps (circa 10MB).
+     * Dimensione minima attesa per il video demo 180s a 1280x720 @ 1.5Mbps (circa 30MB).
      */
-    private const val MIN_EXPECTED_BYTES = 4_000_000L // 4 MB
+    private const val MIN_EXPECTED_BYTES = 12_000_000L // 12 MB
 
     /**
      * Verifica che il file sia un MP4 completo e decodificabile.
@@ -78,14 +78,14 @@ object DemoVideoGenerator {
         val tempFile = File(outputFile.parentFile, "${outputFile.name}.tmp")
         if (tempFile.exists()) tempFile.delete()
 
-        Log.d(TAG, "Avvio generazione video demo 60s (scena pallavolo vista da dietro)...")
+        Log.d(TAG, "Avvio generazione video demo 180s (scena pallavolo dinamica vista da dietro)...")
         try {
             val width = 1280
             val height = 720
             val bitRate = 1_500_000 // 1.5 Mbps
             val frameRate = 30
-            val durationSec = 60
-            val totalFrames = durationSec * frameRate // 1800 frames
+            val durationSec = 180
+            val totalFrames = durationSec * frameRate // 5400 frames
 
             val format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height).apply {
                 setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible)
@@ -194,9 +194,6 @@ object DemoVideoGenerator {
             }
 
             // Geometria campo in prospettiva 3D vista da dietro (dalla linea di fondo vicina)
-            val vanishingX = width / 2f
-            val vanishingY = height * 0.32f
-
             val floorTopY = height * 0.38f
             val floorBottomY = height.toFloat()
 
@@ -211,7 +208,22 @@ object DemoVideoGenerator {
             val netLeftX = width * 0.22f
             val netRightX = width * 0.78f
 
-            val rallyFrames = frameRate * 3 // Un passaggio di pallone dura 3s
+            // ── SEQUENZA RALLY DINAMICA (Traiettorie tra i due campi e cambi di direzione tra le aste) ──
+            // Ogni waypoint definisce: side (0 = Campo Vicino/Casa, 1 = Campo Avversario) e xRatio (0.15..0.85 tra le antenne)
+            val waypoints = listOf(
+                Pair(0, 0.75f), // Rimbalzo campo casa a destra
+                Pair(1, 0.25f), // Schiacciata nel campo avversario a sinistra
+                Pair(0, 0.60f), // Risposta campo casa centro-destra
+                Pair(1, 0.85f), // Attacco campo avversario a destra vicina all'asta
+                Pair(0, 0.15f), // Difesa campo casa a sinistra vicino all'asta
+                Pair(1, 0.50f), // Alzata/Attacco al centro del campo avversario
+                Pair(0, 0.80f), // Contro-attacco campo casa a destra
+                Pair(1, 0.30f), // Rimbalzo campo avversario centro-sinistra
+                Pair(0, 0.20f), // Diagonale stretta verso campo casa sinistra
+                Pair(1, 0.70f)  // Lungolinea verso campo avversario destra
+            )
+
+            val strokeFrames = (frameRate * 1.8f).toInt() // Ogni passaggio del pallone dura ~1.8 secondi
 
             var frameIndex = 0
             var inputDone = false
@@ -315,20 +327,34 @@ object DemoVideoGenerator {
                             canvas.drawLine(antennaLeftX, netTopY - 70f, antennaLeftX, netCenterY, paintAntenna)
                             canvas.drawLine(antennaRightX, netTopY - 70f, antennaRightX, netCenterY, paintAntenna)
 
-                            // ── 6. ANIMAZIONE PALLONE (Schiacciata / Rimbalzo sopra la rete) ──
-                            val phase = (frameIndex % rallyFrames).toFloat() / rallyFrames // 0..1
-                            val t = if (phase < 0.5f) phase * 2f else (1f - phase) * 2f
+                            // ── 6. ANIMAZIONE PALLONE DINAMICA TRA I DUE CAMPI ──
+                            val strokeIndex = frameIndex / strokeFrames
+                            val t = (frameIndex % strokeFrames).toFloat() / strokeFrames.toFloat() // 0..1
 
-                            // Il pallone parte vicino dal campo di qua (grande) e va verso il campo di la (piccolo)
-                            val ballX = width * 0.38f + (width * 0.24f) * t
-                            val ballY = (floorBottomY - 120f) - (floorBottomY - netTopY - 140f) * Math.sin(Math.PI * t).toFloat()
-                            val ballRadius = 38f - (18f * t) // diminuisce per prospettiva
+                            val wpCurrent = waypoints[strokeIndex % waypoints.size]
+                            val wpNext = waypoints[(strokeIndex + 1) % waypoints.size]
 
-                            // Ombra del pallone sul pavimento
-                            val shadowY = netCenterY + (floorBottomY - 160f - netCenterY) * (1f - t)
+                            // Calcolo posizione X e Y tra il punto d'origine e il punto di destinazione
+                            val fromX = netLeftX + (netRightX - netLeftX) * wpCurrent.second
+                            val toX = netLeftX + (netRightX - netLeftX) * wpNext.second
+                            val ballX = fromX + (toX - fromX) * t
+
+                            val fromY = if (wpCurrent.first == 0) floorBottomY - 120f else floorTopY + 40f
+                            val toY = if (wpNext.first == 0) floorBottomY - 120f else floorTopY + 40f
+                            val baseFloorY = fromY + (toY - fromY) * t
+
+                            // Parabola del volo sopra la rete
+                            val arcHeight = 160f
+                            val ballY = baseFloorY - arcHeight * Math.sin(Math.PI * t).toFloat()
+
+                            // Prospettiva dimensione pallone (più grande vicino, più piccolo lontano)
+                            val depthRatio = (baseFloorY - floorTopY) / (floorBottomY - floorTopY) // 0 (lontano) .. 1 (vicino)
+                            val ballRadius = 18f + 20f * depthRatio.coerceIn(0f, 1f)
+
+                            // Ombra del pallone sul pavimento del campo
                             canvas.drawOval(
-                                ballX - ballRadius * 1.2f, shadowY - 8f,
-                                ballX + ballRadius * 1.2f, shadowY + 8f,
+                                ballX - ballRadius * 1.2f, baseFloorY - 6f,
+                                ballX + ballRadius * 1.2f, baseFloorY + 6f,
                                 paintShadow
                             )
 
@@ -336,7 +362,7 @@ object DemoVideoGenerator {
                             canvas.drawCircle(ballX, ballY, ballRadius, paintBallYellow)
                             // Pannello blu curvo
                             val bluePath = Path().apply {
-                                addArc(ballX - ballRadius, ballY - ballRadius, ballX + ballRadius, ballY + ballRadius, 30f, 120f)
+                                addArc(ballX - ballRadius, ballY - ballRadius, ballX + ballRadius, ballY + ballRadius, (frameIndex * 5) % 360f, 120f)
                                 lineTo(ballX, ballY)
                                 close()
                             }
@@ -410,7 +436,7 @@ object DemoVideoGenerator {
                 tempFile.copyTo(outputFile, overwrite = true)
                 tempFile.delete()
             }
-            Log.d(TAG, "Video demo 60s (pallavolo vista da dietro) generato: ${outputFile.length()} bytes")
+            Log.d(TAG, "Video demo 180s (pallavolo dinamica vista da dietro) generato: ${outputFile.length()} bytes")
             return true
         } catch (e: Exception) {
             Log.e(TAG, "Errore generazione video demo", e)
