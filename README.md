@@ -46,10 +46,12 @@
 - **Cattura Pulita (Clean Capture)**: Durante la cattura dello screenshot, l'interfaccia (HUD, loghi e pannelli) viene nascosta per una frazione di secondo, estraendo il frame video nativo a risoluzione piena.
 - **Editor di Disegno Integrato**: Strumento per disegnare a mano libera, tracciare linee e aggiungere note tecniche direttamente sul fermo immagine.
 
-### 🖼️ Galleria & Gestione Avanzata Immagini
-- **Modalità Selezione Multipla**: Seleziona più immagini tenendo premuto o tramite il tasto di selezione dedicato.
-- **Condivisione & Eliminazione di Massa**: Condividi multipli screenshot contemporaneamente via WhatsApp, Email o altre app.
-- **Piena Compatibilità Android 11+ (Scoped Storage)**: Eliminazione sicura conforme alle policy di sicurezza Android tramite l'API `MediaStore.createDeleteRequest`.
+### 🖼️ Galleria, Partite & Gestione Avanzata Immagini
+- **Organizzazione per Partita / Sessione (`MatchManager`)**: Crea e seleziona cartelle specifiche per ogni gara o allenamento (es. `Partita vs Roma`). Tutti gli screenshot e le clip registrate vengono salvati direttamente nella sottocartella della partita attiva.
+- **Pulsante "➕ Nuova Partita"**: Avvia una nuova sessione con un tocco per lasciare le cartelle precedenti pulite e separate.
+- **Eliminazione In blocco per Partita ("🗑️ Elimina Partita")**: Cancella l'intera cartella della partita selezionata e tutti i suoi file multimediali in un'unica operazione.
+- **Pulsanti Scout Aggiornati**: Popup MARK riprogettato con la codifica scout completa per le posizioni di attacco: `1.01.G`, `2.H`, `2.V`, `3.F`, `3.1`, `3.2`, `3.7`, `4.H`, `4.V`, `P` (Pipe) e `O` (Opposto).
+- **Modalità Selezione Multipla & Scoped Storage**: Selezione multipla, condivisione ed eliminazione conforme ad Android 11+ tramite `MediaStore.createDeleteRequest`.
 
 ### 🎨 Design System "Cyber Teal"
 - **Tema Scuro Tecnologico**: Sfondo Navy scuro (`#0F172A`) e superfici Blu Tech (`#192134`) con accenti Ciano (`#06B6D4`) e Teal (`#0EA5E9`).
