@@ -50,7 +50,13 @@
 - **Organizzazione per Partita / Sessione (`MatchManager`)**: Crea e seleziona cartelle specifiche per ogni gara o allenamento (es. `Partita vs Roma`). Tutti gli screenshot e le clip registrate vengono salvati direttamente nella sottocartella della partita attiva.
 - **Pulsante "➕ Nuova Partita"**: Avvia una nuova sessione con un tocco per lasciare le cartelle precedenti pulite e separate.
 - **Eliminazione In blocco per Partita ("🗑️ Elimina Partita")**: Cancella l'intera cartella della partita selezionata e tutti i suoi file multimediali in un'unica operazione.
-- **Pulsanti Scout Aggiornati**: Popup MARK riprogettato con la codifica scout completa per le posizioni di attacco: `1.01.G`, `2.H`, `2.V`, `3.F`, `3.1`, `3.2`, `3.7`, `4.H`, `4.V`, `P` (Pipe) e `O` (Opposto).
+- **Pulsanti Scout 5 Colonne**: Popup MARK riprogettato su 5 colonne distinte con codifica scout completa:
+  - **P.4**: `4.H`, `4.V`
+  - **P.3**: `3.F`, `3.1`, `3.2`, `3.7`
+  - **P.2**: `2.H`, `2.V`
+  - **P.1**: `1.0`, `1.G` (separati da P e O)
+  - **P/O**: `P` (Pipe) e `O` (Opposto)
+- **Selettore Durata Orologio Invertito**: Pulsante orologio `⏱️ 3s` posizionato in vista a sinistra nell'intestazione del popup per la selezione immediata della durata clip.
 - **Modalità Selezione Multipla & Scoped Storage**: Selezione multipla, condivisione ed eliminazione conforme ad Android 11+ tramite `MediaStore.createDeleteRequest`.
 
 ### 🎨 Design System "Cyber Teal"
